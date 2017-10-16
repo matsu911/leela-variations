@@ -60,7 +60,7 @@ def main():
     process = start_gtp()
     gtp_in, gtp_out, gtp_err = process.stdin, process.stdout, process.stderr
 
-    if process is None:        
+    if process is None:
         return
 
     # start stderr thread
@@ -76,16 +76,16 @@ def main():
     out_game = gomill.sgf.Sgf_game(19)
     last_node = out_game.extend_main_sequence()
 
-    
+
 
     converged_root = Node('ROOT')
     converged_last = converged_root
-    
+
     for move_no, node in enumerate(source_game.get_main_sequence(), start=1):
         color, pos = node.get_move()
-        if pos is None:            
+        if pos is None:
             continue  # ROOT NODE
-        
+
         y, x = pos
         translated = '{}{}'.format(CHARS[x], y + 1)
 
@@ -97,7 +97,7 @@ def main():
             write_command(gtp_in, command + CRLF)
             read_response(gtp_out, lines=1)
             main = last_node
-            main.set_move(color, (y, x))  # Extend main sequence                        
+            main.set_move(color, (y, x))  # Extend main sequence
         else:
             get_buffer() # Discard old buffer
             command = 'genmove {}\n\n'.format(color)
@@ -111,7 +111,7 @@ def main():
 
             main = last_node.new_child()
             main.set_move(color, (y, x))  # Is a match, no variation required
-            
+
 
             branches = []
             comment = ''
@@ -122,7 +122,7 @@ def main():
             comment += 'Move Suggested by Leela {} : {} \n\n'.format(move_match, result)
             comment +=  '\n'.join(logs)
             main.set('C', comment)
-            
+
             root = Node('ROOT')
             if (y, x) != (y_1, x_1):
                 root.get(result, description = 'Suggested Move')
@@ -133,13 +133,13 @@ def main():
                 parts = line.split('PV: ')
                 if len(parts) == 1:
                     continue
-                
+
                 branch = parts[1]
                 branch_moves = branch.split(' ')
 
                 if len(branch_moves) < 2:
                     continue
-                
+
                 last = root
                 c_last = converged_last
                 for m in branch_moves:
@@ -154,21 +154,21 @@ def main():
 
 
             # for line in logs:
-            #     line = line.strip()                
+            #     line = line.strip()
             #     if '->' in line:
             #         line = line.strip()
             #         parts = line.split('PV: ')
             #         if len(parts) > 1:
             #             branch = parts[1]
             #             if not branch in branches:
-            #                 branches.append(branch)                            
-            #                 # branch_node.set_move(color, (y, x))  # Is a match, no variation required            
+            #                 branches.append(branch)
+            #                 # branch_node.set_move(color, (y, x))  # Is a match, no variation required
             #                 # branch_node = side.new_child()
             #                 branch_main = last_node
             #                 branch_moves = branch.split(' ')
-            #                 last_color = color                            
+            #                 last_color = color
             #                 commented = False
-            #                 for m in branch_moves: 
+            #                 for m in branch_moves:
             #                     branch_node = branch_main.new_child()
             #                     branch_main = branch_node
             #                     if not commented:
@@ -176,7 +176,7 @@ def main():
             #                         branch_node.set("C", line)
             #                         print 'ADDED COMMENT'
             #                     y_1, x_1 = alfa_to_num(m)
-            #                     branch_node.set_move(last_color,(y_1, x_1))                                                                                    
+            #                     branch_node.set_move(last_color,(y_1, x_1))
             #                     if last_color == 'b':
             #                         last_color = 'w'
             #                     else:
@@ -184,13 +184,16 @@ def main():
 
             if (y, x) != (y_1, x_1):
                 suggested = last_node.new_child()
-                suggested.set_move(color, (y_1, x_1))  # Suggested
+                if y_1 < 0 and x_1 < 0:
+                    suggested.set_move(color, None) # Suggested
+                else:
+                    suggested.set_move(color, (y_1, x_1))  # Suggested
 
                 # Undo the move
                 command = 'undo\n\n'
                 gtp_in.write(command)
                 read_response(gtp_out, lines=1)
-                
+
                 # PLAY THE ACTUAL MOVE
                 command = 'play {} {}\n\n'.format(color, translated)
                 gtp_in.write(command)
@@ -199,12 +202,12 @@ def main():
             last_node = main
             converged_last = converged_last.get(translated)
 
-    
+
 
 
 
         print 'MOVE {} : {}, {}, {}'.format(move_no, color, x, y)
-        save_game(out_game, dest_sgf)      
+        save_game(out_game, dest_sgf)
         # save_node_game(converged_root, 'testt.sgf')  # Different branching strategy
 
     #END
@@ -212,7 +215,10 @@ def main():
 def add_recursive(gn, n, c):
     y_2, x_2 = alfa_to_num(n.name)
     child = gn.new_child()
-    child.set_move(c, (y_2, x_2))
+    if y_2 < 0 and x_2 < 0:
+        child.set_move(c, None)
+    else:
+        child.set_move(c, (y_2, x_2))
     if c == 'b':
         c = 'w'
     else:
@@ -231,7 +237,7 @@ def save_node_game(game, path):
 
 
 def save_game(game,path):
-    sgf_text = game.serialise()    
+    sgf_text = game.serialise()
     open(path, 'w').write(sgf_text)
 
 def log(*args, **params):
@@ -242,13 +248,15 @@ def read_response(reader, lines=4):
     response = ''
 
     for x in range(lines + 1):
-        line = reader.readline()        
+        line = reader.readline()
         if response == '' and line.strip() != '':
             response = line
     return response.strip()
 
 
 def alfa_to_num(alfa):
+    if alfa == 'resign':
+        return -1, -1
     y = alfa[0]
     x = alfa[1:]
     y = CHARS.index(y)

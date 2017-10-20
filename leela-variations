@@ -9,17 +9,26 @@ import gomill.sgf
 import gomill.boards
 import platform
 
+LEELA_VERSION = '0100'
 ## Edit and add binary name on top for differnt version, or preferred binary
-LEELA_BINARIES = [    
-    './leela-binary/leela_090_linux_x64_opencl',
-    './leela-binary/leela_090_linux_x64',
+LEELA_BINARIES = [
+    './leela-binary/leela_%s_linux_x64_opencl',
+    './leela-binary/leela_%s_linux_x64',
 ]
 
 if platform.system() == 'Windows':
     LEELA_BINARIES = [
-        '/leela-binary/Leela090GTP_OpenCL.exe',
-        '/leela-binary/Leela090GTP.exe'
+        '/leela-binary/Leela%sGTP_OpenCL.exe',
+        '/leela-binary/Leela%sGTP.exe'
     ]
+
+if platform.system() == 'Darwin':
+    LEELA_BINARIES = [
+        './leela-binary/leela_%s_macOS_opencl',
+        './leela-binary/leela_%s_macOS',
+    ]
+
+LEELA_BINARIES = map(lambda x: x % LEELA_VERSION, LEELA_BINARIES)
 
 ARGS = ['-g']
 

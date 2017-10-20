@@ -90,8 +90,11 @@ def main():
     converged_root = Node('ROOT')
     converged_last = converged_root
 
-    for i in ['PB', 'PW', 'BR', 'WR', 'RU', 'KM', 'TM', 'OT', 'DT', 'PC', 'RE']:
-        out_game.root.set(i, source_game.root.get(i))
+    for i in ['GN', 'RO', 'EV', 'PB', 'PW', 'BR', 'WR', 'RU', 'KM', 'TM', 'OT', 'DT', 'PC', 'RE']:
+        try:
+            out_game.root.set(i, source_game.root.get(i))
+        except:
+            pass
 
     for move_no, node in enumerate(source_game.get_main_sequence(), start=1):
         color, pos = node.get_move()

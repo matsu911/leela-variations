@@ -9,7 +9,7 @@ import gomill.sgf
 import gomill.boards
 import platform
 
-LEELA_VERSION = '0100'
+LEELA_VERSION = '0110'
 ## Edit and add binary name on top for differnt version, or preferred binary
 LEELA_BINARIES = [
     './leela-binary/leela_%s_linux_x64_opencl',

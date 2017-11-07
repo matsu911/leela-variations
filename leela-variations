@@ -81,6 +81,12 @@ def main():
     read_response(gtp_out, lines=1)
     start_up_message = get_buffer() # Clear initial debug messages
 
+    komi = source_game.root.get('KM')
+    if komi:
+        write_command(gtp_in, ('komi %f' % float(komi)) + CRLF)
+        read_response(gtp_out, lines=1)
+        start_up_message = get_buffer() # Clear initial debug messages
+
     source_game = gomill.sgf.Sgf_game.from_string(open(source_sgf).read())
     out_game = gomill.sgf.Sgf_game(19)
     last_node = out_game.extend_main_sequence()

@@ -85,12 +85,6 @@ def main():
     out_game = gomill.sgf.Sgf_game(19)
     last_node = out_game.extend_main_sequence()
 
-    komi = source_game.root.get('KM')
-    if komi:
-        write_command(gtp_in, ('komi %f' % float(komi)) + CRLF)
-        read_response(gtp_out, lines=1)
-        start_up_message = get_buffer() # Clear initial debug messages
-
     converged_root = Node('ROOT')
     converged_last = converged_root
 
@@ -99,6 +93,12 @@ def main():
             out_game.root.set(i, source_game.root.get(i))
         except:
             pass
+
+    komi = source_game.root.get('KM')
+    if komi:
+        write_command(gtp_in, ('komi %f' % float(komi)) + CRLF)
+        read_response(gtp_out, lines=1)
+        start_up_message = get_buffer() # Clear initial debug messages
 
     for move_no, node in enumerate(source_game.get_main_sequence(), start=1):
         color, pos = node.get_move()

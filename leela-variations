@@ -8,7 +8,6 @@ import threading
 import gomill.sgf
 import gomill.boards
 import platform
-import codecs
 
 LEELA_VERSION = '0110'
 ## Edit and add binary name on top for differnt version, or preferred binary
